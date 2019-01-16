@@ -7,7 +7,7 @@ import com.typesafe.config.Config
 import com.zaxxer.hikari.HikariDataSource
 import javax.inject.{ Inject, Singleton }
 import monix.eval.Task
-import scalikejdbc.{ ConnectionPool, ConnectionPoolFactory, ConnectionPoolFactoryRepository, ConnectionPoolSettings, DataSourceConnectionPool, NamedDB, SQL, SQLBatch, SQLToList, WrappedResultSet }
+import scalikejdbc.{ ConnectionPool, ConnectionPoolFactory, ConnectionPoolFactoryRepository, ConnectionPoolSettings, DB, DataSourceConnectionPool, NamedDB, SQL, SQLBatch, SQLToList, WrappedResultSet }
 import scalikejdbc.config.{ DBs, NoEnvPrefix, TypesafeConfig, TypesafeConfigReader }
 
 trait SqlDbAdapter extends Logging {
@@ -101,6 +101,7 @@ trait SqlDbAdapter extends Logging {
   }
 
   def executeBatch(batch: SQLBatch): Task[Unit] = {
+    ensureDBSetup
     Task {
       NamedDB(connectionName) autoCommit { implicit session =>
         try {
@@ -125,6 +126,19 @@ trait SqlDbAdapter extends Logging {
           case ex: Exception => logQueryErrorMessage(ex, update)
         }
 
+      }
+    }
+  }
+
+  def getOne[A](query: SQL[_, _], mapper: WrappedResultSet => A): Task[Option[A]] = {
+    ensureDBSetup
+    Task {
+      NamedDB(connectionName) autoCommit { implicit session =>
+        try {
+          query.map(mapper).single().apply()
+        } catch {
+          case ex: Exception => logQueryErrorMessage(ex, query); None
+        }
       }
     }
   }

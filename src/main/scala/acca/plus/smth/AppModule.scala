@@ -16,6 +16,6 @@ class AppModule extends AbstractModule with ScalaModule {
     bind[AppConfig].toInstance(serviceConfig)
 
     bind[Clock].toInstance(Clock.systemUTC())
-    bind[HttpClient].to[DefaultHttpClient]
+//    bind[HttpClient].to[DefaultHttpClient]
   }
 }

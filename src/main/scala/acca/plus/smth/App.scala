@@ -1,6 +1,6 @@
 package acca.plus.smth
 
-import acca.plus.smth.services.{ HttpEndpoint, PostgresAdapter, SmthRepository }
+import acca.plus.smth.services.{ DefaultHttpClient, HttpEndpoint, PostgresAdapter, UserRepository }
 import akka.actor.ActorSystem
 import akka.stream.ActorMaterializer
 import com.google.inject.util.Modules
@@ -23,15 +23,15 @@ class App @Inject()(configOverride: Map[String, String] = Map()) {
   val config = injector.getInstance(classOf[Config])
   val appConfig = injector.getInstance(classOf[AppConfig])
   val postgresAdapter = new PostgresAdapter(config)
-  val smthRepo = new SmthRepository(postgresAdapter)
+  val userRepo = new UserRepository(postgresAdapter)
 
-  // http endpoint
   implicit val system = ActorSystem("my-system")
   implicit val materializer = ActorMaterializer()
   // needed for the future flatMap/onComplete in the end
   //  implicit val executionContext = system.dispatcher
 
-  val httpEndpoint = new HttpEndpoint()
+  val httpEndpoint = new HttpEndpoint(userRepo)
+//  val httpClient = new DefaultHttpClient(appConfig)
 
 
   def start(): Unit = {
