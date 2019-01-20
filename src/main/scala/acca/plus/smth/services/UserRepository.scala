@@ -5,7 +5,6 @@ import javax.inject.{ Inject, Singleton }
 import monix.eval.Task
 import scalikejdbc._
 
-@Singleton
 class UserRepository @Inject()(postgresAdapter: PostgresAdapter) extends Logging {
 
   def writeUsers(users: Seq[User]): Task[Unit] = {
@@ -24,7 +23,7 @@ class UserRepository @Inject()(postgresAdapter: PostgresAdapter) extends Logging
       sql"""
         SELECT *
         FROM reqres.users
-        WHERE id IN $ids
+        WHERE id IN ($ids)
       """, createUserEntity
     )
   }
